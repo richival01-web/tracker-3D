@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>tracker_core</name>
+  <version>0.0.1</version>
+  <description>
+    ROS-independent C++ core of the 3D multi-object tracker:
+    Kalman filter, Hungarian association and track management.
+  </description>
+  <maintainer email="239980864+richival01-web@users.noreply.github.com">Riccardo Valentini</maintainer>
+  <license>MIT</license>
+
+  <!-- Build system only: the core library must not depend on rclcpp or any ROS message. -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>eigen</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
