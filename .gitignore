@@ -1,0 +1,54 @@
+# ---------- Dataset (never commit nuScenes data) ----------
+data/
+datasets/
+v1.0-mini/
+v1.0-trainval/
+samples/
+sweeps/
+maps/
+*.tgz
+*.tar.gz
+
+# ---------- ROS 2 / colcon ----------
+build/
+install/
+log/
+
+# ---------- Recordings ----------
+*.mcap
+*.db3
+rosbag*/
+
+# ---------- Results and outputs ----------
+results/
+outputs/
+*.log
+
+# ---------- C++ ----------
+*.o
+*.a
+*.so
+*.out
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+compile_commands.json
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---------- Environment ----------
+.env
+
+# ---------- IDE / OS ----------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
