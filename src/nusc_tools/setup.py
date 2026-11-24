@@ -20,8 +20,8 @@ setup(
     description='Python tools around nuScenes for the 3D multi-object tracker.',
     license='MIT',
     entry_points={
-        # ROS 2 executables will be added here from G4 on, e.g.:
-        # 'console_scripts': ['gt_publisher = nusc_tools.gt_publisher:main'],
-        'console_scripts': [],
+        'console_scripts': [
+            'print_scene = nusc_tools.print_scene:main',
+        ],
     },
 )

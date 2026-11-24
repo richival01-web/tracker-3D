@@ -34,10 +34,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # --break-system-packages is acceptable here because the container is
 # disposable (PEP 668 protects the host, not throwaway images).
 # numpy<2 keeps compatibility with the numpy shipped by Ubuntu/ROS.
+# motmetrics + pandas are needed by nuscenes.eval.tracking. devkit 1.2.0 requires
+# motmetrics==1.4.0 on Python >= 3.10 (see nuscenes/eval/tracking/mot.py).
 RUN pip3 install --no-cache-dir --break-system-packages \
         "numpy<2" \
         nuscenes-devkit==1.2.0 \
-        pyquaternion
+        pyquaternion \
+        motmetrics==1.4.0 \
+        "pandas<2.3"
 
 # ---------- Non-root user ----------
 # Files created in the mounted repo (build/, install/, results/) must belong
