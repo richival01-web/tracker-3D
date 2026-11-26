@@ -12,6 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - ament-cmake-gtest: CMake glue to register GoogleTest tests with colcon
 # - vision-msgs:    Detection3DArray for detections and tracks
 # - visualization-msgs: MarkerArray for RViz2/Foxglove
+# - ros-jazzy-rviz2: RViz2 for visualization of boxes and tracks
 # - python3-pip:    to install nuscenes-devkit (not packaged by Ubuntu)
 # - python3-pytest: test runner used by colcon for ament_python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -24,6 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-pip \
         python3-pytest \
         ros-jazzy-ament-cmake-gtest \
+        ros-jazzy-rviz2 \
         ros-jazzy-vision-msgs \
         ros-jazzy-visualization-msgs \
     && rm -rf /var/lib/apt/lists/*
