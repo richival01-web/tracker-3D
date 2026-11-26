@@ -1,5 +1,7 @@
 # 3D Multi-Object Tracker in ROS 2
 
+> 🚧 **Work in progress** – first release (v0.1) planned for early December 2026.
+
 A tracking-by-detection 3D multi-object tracker for autonomous driving, built as a ROS 2 node in C++17 and evaluated on the nuScenes dataset with the official tracking metrics (AMOTA, AMOTP, ID switches).
 
 ## Planned features
@@ -22,12 +24,17 @@ nuScenes v1.0-mini ──► detection simulator ──► tracker node ──�
 
 ## Status
 
-- [ ] Docker + colcon workspace
-- [ ] nuScenes data loader and detection simulator
+- [x] Docker + colcon workspace (ROS 2 Jazzy, Eigen, GoogleTest)
+- [x] nuScenes scene loader: ground-truth boxes in global coordinates with timestamps, unit-tested with pytest
+- [ ] Detection simulator (ROS 2 node with configurable noise and a fixed seed)
 - [ ] Kalman filter, Hungarian assignment, track management (with tests)
 - [ ] ROS 2 node and launch file
 - [ ] Evaluation on `mini_val`
 - [ ] Demo GIF and results table
+
+## Development
+
+The project is developed with the help of an AI coding agent. [`CLAUDE.md`](CLAUDE.md) holds the instructions the agent must follow: project rules (no dataset files in the repository, no copied code, nothing pushed without review), technical conventions for frames, units and rotations, small reviewable steps, and tests that must pass before every commit. I write the core algorithms (Kalman filter, Hungarian assignment, track management) myself.
 
 ## Data
 
