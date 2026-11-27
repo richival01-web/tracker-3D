@@ -7,7 +7,7 @@ the GT is published as is (score aside).
 
 from dataclasses import fields
 import os
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from builtin_interfaces.msg import Time
 from geometry_msgs.msg import Point, Pose, Quaternion, Vector3
@@ -20,7 +20,7 @@ from visualization_msgs.msg import MarkerArray, Marker
 from nuscenes.nuscenes import NuScenes
 
 from nusc_tools.noise import NoiseConfig, SimDetection, frame_rng, simulate_detections
-from nusc_tools.scene_loader import load_scene_keyframes
+from nusc_tools.scene_loader import GtBox, load_scene_keyframes
 
 
 CLASS_COLORS = {
@@ -34,6 +34,7 @@ CLASS_COLORS = {
 }
 DEFAULT_COLOR = (1.0, 1.0, 1.0)  # white for unknown classes
 FRAME_ID = 'map'
+GT_RGBA = (1.0, 1.0, 1.0, 0.3)  # GT markers: white, translucent
 
 
 def stamp_from_seconds(t_s: float) -> Time:
@@ -96,16 +97,21 @@ def box_to_detection3d(box: SimDetection, header: Header) -> Detection3D:
     return detection
 
 
-def box_to_marker(box: SimDetection, header: Header, marker_id: int) -> Marker:
-    """Convert a simulated detection to a visualization_msgs/Marker.
+def box_to_marker(box: Union[SimDetection, GtBox], header: Header, marker_id: int,
+                  ns: str = 'detections',
+                  rgba: Optional[Tuple[float, float, float, float]] = None) -> Marker:
+    """Convert a simulated detection or a GT box to a visualization_msgs/Marker.
 
     The header (stamp of the keyframe + frame id) is built once per keyframe
-    by the caller and shared by all its detections. The marker_id is unique
-    per detection in the keyframe, but can be reused in the next keyframe.
+    by the caller and shared by all its boxes. The marker_id is unique per
+    box in the keyframe (and namespace), but can be reused in the next
+    keyframe. Without `rgba` the color comes from the class and the opacity
+    from `box.score`; with `rgba` the score is not read, so a GtBox (which
+    has no score) works too.
     """
     marker = Marker()
     marker.header = header
-    marker.ns = 'detections'
+    marker.ns = ns
     marker.id = marker_id
     marker.type = Marker.CUBE
     marker.action = Marker.ADD
@@ -117,11 +123,16 @@ def box_to_marker(box: SimDetection, header: Header, marker_id: int) -> Marker:
         y=box.size_wlh[0],
         z=box.size_wlh[2],
     )
-    # Color by tracking class; opacity by score, so false positives (lower
-    # score on average) look fainter.
-    r, g, b = CLASS_COLORS.get(box.tracking_name, DEFAULT_COLOR)
-    a = 0.5 + 0.5 * box.score  # score in [0, 1] -> alpha in [0.5, 1.0]
-    marker.color = ColorRGBA(r=r, g=g, b=b, a=a)
+    if rgba is not None:
+        # Fixed color (used for the GT): the score is not read.
+        r, g, b, a = rgba
+        marker.color = ColorRGBA(r=r, g=g, b=b, a=a)
+    else:
+        # Color by tracking class; opacity by score, so false positives
+        # (lower score on average) look fainter.
+        r, g, b = CLASS_COLORS.get(box.tracking_name, DEFAULT_COLOR)
+        a = 0.5 + 0.5 * box.score  # score in [0, 1] -> alpha in [0.5, 1.0]
+        marker.color = ColorRGBA(r=r, g=g, b=b, a=a)
     return marker
 
 
@@ -144,6 +155,23 @@ def detections_to_msgs(timestamp_s: float, detections: List[SimDetection]
         detection_array.detections.append(box_to_detection3d(det, header))
         marker_array.markers.append(box_to_marker(det, header, marker_id=i))
     return detection_array, marker_array
+
+
+def gt_to_markers(timestamp_s: float, boxes: List[GtBox]) -> MarkerArray:
+    """Convert the GT boxes of one keyframe into white translucent cubes.
+
+    Published on a separate topic, only for a visual comparison with the
+    noisy detections in RViz: there is no Detection3DArray for the GT, so
+    the tracker cannot subscribe to it by mistake. Same header as the
+    detections of the keyframe, and DELETEALL first, as in detections_to_msgs.
+    """
+    header = Header(stamp=stamp_from_seconds(timestamp_s), frame_id=FRAME_ID)
+    marker_array = MarkerArray()
+    marker_array.markers.append(Marker(header=header, action=Marker.DELETEALL))
+    for i, box in enumerate(boxes):
+        marker_array.markers.append(box_to_marker(box, header, marker_id=i,
+                                                  ns='ground_truth', rgba=GT_RGBA))
+    return marker_array
 
 
 def next_frame_index(index: int, n_frames: int, loop: bool) -> Optional[int]:
@@ -202,6 +230,7 @@ class GtPublisher(Node):
         self.finished = False  # read by main() to leave the spin loop
         self.detection_pub = self.create_publisher(Detection3DArray, 'detections', 10)
         self.marker_pub = self.create_publisher(MarkerArray, 'detections/markers', 10)
+        self.gt_pub = self.create_publisher(MarkerArray, 'ground_truth/markers', 10)
         self.timer = self.create_timer(self.period_s, self.on_timer)
 
 
@@ -219,9 +248,11 @@ class GtPublisher(Node):
         # (seed, k), so with `loop` every pass over the scene is identical.
         rng = frame_rng(self.seed, self.frame_index)
         detections = simulate_detections(frame.boxes, self.noise_cfg, rng)
+        gt_markers = gt_to_markers(frame.timestamp_s, frame.boxes)
         detection_array, marker_array = detections_to_msgs(frame.timestamp_s, detections)
         self.detection_pub.publish(detection_array)
         self.marker_pub.publish(marker_array)
+        self.gt_pub.publish(gt_markers)
         self.get_logger().info(
             f"Publishing frame {self.frame_index + 1}/{len(self.keyframes)}: "
             f"{len(frame.boxes)} GT boxes -> {len(detections)} detections.")
