@@ -56,6 +56,11 @@ def quat_from_yaw(yaw: float) -> List[float]:
     return [math.cos(yaw / 2), 0.0, 0.0, math.sin(yaw / 2)]
 
 
+def wrap_angle(angle: float) -> float:
+    """Wrap an angle to [-pi, pi]."""
+    return (angle + math.pi) % (2 * math.pi) - math.pi
+
+
 def find_scene(nusc, scene_name: str) -> dict:
     """Return the scene record with the given name (e.g. 'scene-0103')."""
     for scene in nusc.scene:
