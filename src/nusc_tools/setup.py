@@ -22,6 +22,7 @@ setup(
     entry_points={
         'console_scripts': [
             'print_scene = nusc_tools.print_scene:main',
+            'gt_publisher = nusc_tools.gt_publisher:main',
         ],
     },
 )

@@ -1,16 +1,9 @@
 """Tests for scene_loader with a tiny fake dataset (no nuScenes data needed)."""
 
-import math
-
 import numpy as np
 import pytest
 
-from nusc_tools.scene_loader import load_scene_keyframes, yaw_from_quaternion
-
-
-def quat_from_yaw(yaw):
-    """[w, x, y, z] quaternion of a pure rotation around z."""
-    return [math.cos(yaw / 2), 0.0, 0.0, math.sin(yaw / 2)]
+from nusc_tools.scene_loader import load_scene_keyframes, quat_from_yaw, yaw_from_quaternion
 
 
 class FakeNuScenes:

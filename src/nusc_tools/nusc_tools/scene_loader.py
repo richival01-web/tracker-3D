@@ -12,6 +12,7 @@ Conventions kept from the devkit:
 """
 
 from dataclasses import dataclass, field
+import math
 from typing import List, Optional
 
 from pyquaternion import Quaternion
@@ -48,6 +49,11 @@ class Keyframe:
 def yaw_from_quaternion(q_wxyz: List[float]) -> float:
     """Return the rotation around z (yaw) of a [w, x, y, z] quaternion."""
     return Quaternion(q_wxyz).yaw_pitch_roll[0]
+
+
+def quat_from_yaw(yaw: float) -> List[float]:
+    """Return the [w, x, y, z] quaternion of a pure rotation around z."""
+    return [math.cos(yaw / 2), 0.0, 0.0, math.sin(yaw / 2)]
 
 
 def find_scene(nusc, scene_name: str) -> dict:
